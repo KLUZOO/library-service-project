@@ -4,9 +4,11 @@ click==8.2.1
 colorama==0.4.6
 Django==5.2.4
 djangorestframework==3.16.0
+djangorestframework_simplejwt==5.5.1
 mypy_extensions==1.1.0
 packaging==25.0
 pathspec==0.12.1
 platformdirs==4.3.8
+PyJWT==2.10.1
 sqlparse==0.5.3
 tzdata==2025.2
