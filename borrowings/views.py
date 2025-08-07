@@ -1,10 +1,9 @@
 from django.db import transaction
-from django.shortcuts import render
 from django.utils import timezone
-from rest_framework import generics, viewsets, status, mixins
+from rest_framework import status, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -20,7 +19,7 @@ class BorrowingsViewSet(
 ):
     queryset = Borrowing.objects.select_related("book", "user")
     serializer_class = BorrowingSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.action == "list":
