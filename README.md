@@ -33,8 +33,8 @@ To replace the outdated manual library tracking system with an online platform t
 - **Task Queue:** Celery + Redis
 - **Notifications:** Telegram Bot API
 - **Documentation:** DRF Spectacular (Swagger/OpenAPI)
-- **Testing:** pytest, coverage (60%+ coverage)
-- **Other:** docker-compose, python-dotenv for environment variables
+- **Testing:** pytest
+- **Other:** python-dotenv for environment variables
 
 ---
 
