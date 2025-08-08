@@ -117,7 +117,16 @@ git clone https://github.com/KLUZOO/library-service-project.git
 cd library-service
 ```
 
-2. Create .env file
+2. If you are using PyCharm - it may propose you to automatically create venv for your project and install requirements in it, but if not:
+
+```
+python -m venv venv
+venv\Scripts\activate (on Windows)
+source venv/bin/activate (on macOS)
+pip install -r requirements.txt
+```
+
+3. Create .env file
 
    Copy .env.sample to .env and fill in the required environment variables:
 
@@ -125,13 +134,13 @@ cd library-service
 cp .env.sample .env
 ```
 
-3. Make migrations
+4. Make migrations
 
 ```
 python manage.py migrate
 ```
 
-4. Run celery
+5. Run celery
 
 ```
 docker run --name my-redis -p 6379:6379 -d redis
@@ -141,7 +150,7 @@ celery -A library_service beat --loglevel=info --scheduler django_celery_beat.sc
 
 ---
 
-5. Run django project
+6. Run django project
 
 ```
 python manage.py runserver
