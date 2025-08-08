@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import status, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -29,6 +30,23 @@ class BorrowingsViewSet(
             return BorrowingSerializer
         return BorrowingCreateViewSet
 
+    @extend_schema(
+        description="Create a new borrowing if the book is available. Decreases book inventory and sends a notification.",
+        summary="Create a borrowing record",
+        responses={
+            201: {"$ref": "#/components/schemas/Borrowing"},
+            400: {
+                "description": "Validation error (e.g., book not available)",
+                "type": "object",
+                "properties": {"detail": {"type": "string"}},
+            },
+        },
+    )
+    def create(self, request, *args, **kwargs):
+        # You can either override create fully or call super()
+        # The important part is that perform_create contains your logic
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         with transaction.atomic():
             book = serializer.validated_data["book"]
@@ -48,6 +66,44 @@ class BorrowingsViewSet(
             )
             notify_new_borrowing.delay(message)
 
+    @extend_schema(
+        description="Mark a borrowed book as returned. Updates the actual return date, "
+        "increases the book's inventory, and triggers a return notification.",
+        summary="Return a borrowed book",
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Book returned successfully.",
+                    },
+                    "data": {"$ref": "#/components/schemas/Borrowing"},
+                },
+            },
+            400: {
+                "description": "Validation error",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string",
+                        "example": "This book has already been returned.",
+                    },
+                },
+            },
+            403: {
+                "description": "Permission denied",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string",
+                        "example": "You do not have access to this loan.",
+                    },
+                },
+            },
+        },
+        methods=["POST"],
+    )
     @action(
         detail=True,
         methods=["post"],
@@ -103,3 +159,23 @@ class BorrowingsViewSet(
             return queryset
 
         return queryset.filter(user=user)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="is_active",
+                type=str,
+                required=False,
+                description="Filter borrowings by active status: 'true' for not returned, 'false' for returned",
+                enum=["true", "false"],
+            ),
+            OpenApiParameter(
+                name="user_id",
+                type=str,
+                required=False,
+                description="Comma-separated list of user IDs (only for staff users). Example: '1,2,3'",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
