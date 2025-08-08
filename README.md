@@ -113,7 +113,7 @@ Telegram notifications are sent to the library admin chat:
 1. Clone the repository
 
 ```
-git clone https://github.com/<your-repo>.git
+git clone https://github.com/KLUZOO/library-service-project.git
 cd library-service
 ```
 
@@ -125,7 +125,13 @@ cd library-service
 cp .env.sample .env
 ```
 
-3. Run celery
+3. Make migrations
+
+```
+python manage.py migrate
+```
+
+4. Run celery
 
 ```
 docker run --name my-redis -p 6379:6379 -d redis
@@ -135,7 +141,8 @@ celery -A library_service beat --loglevel=info --scheduler django_celery_beat.sc
 
 ---
 
-4. Run django project
+5. Run django project
+
 ```
 python manage.py runserver
 ```

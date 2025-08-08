@@ -137,7 +137,7 @@ class BorrowingsViewSet(
 
     def get_queryset(self):
         request = self.request
-        queryset = self.queryset
+        queryset = self.queryset.all()
         user = request.user
         is_active = request.query_params.get("is_active")
 
