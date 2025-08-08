@@ -9,6 +9,9 @@ from rest_framework.viewsets import GenericViewSet
 
 from borrowings.models import Borrowing
 from borrowings.serializers import BorrowingSerializer, BorrowingCreateViewSet
+from notifications.services import send_telegram_message
+
+from notifications.tasks import notify_new_borrowing, notify_book_return
 
 
 class BorrowingsViewSet(
@@ -35,7 +38,15 @@ class BorrowingsViewSet(
             book.inventory -= 1
             book.save()
 
-            serializer.save(user=self.request.user)
+            borrowing = serializer.save(user=self.request.user)
+            message = (
+                f"📚 <b>New Borrowing</b>\n"
+                f"👤 User: {borrowing.user.email}\n"
+                f"📖 Book: {borrowing.book.title}\n"
+                f"📅 Borrowed: {borrowing.borrow_date}\n"
+                f"📆 Expected return: {borrowing.expected_return_date}"
+            )
+            notify_new_borrowing.delay(message)
 
     @action(
         detail=True,
@@ -59,6 +70,8 @@ class BorrowingsViewSet(
             book = borrowing.book
             book.inventory += 1
             book.save()
+
+            notify_book_return.delay(borrowing.id)
 
             serializer = BorrowingSerializer(borrowing)
             return Response(
